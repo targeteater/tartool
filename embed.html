@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TarTools</title>
+    <title>Embed | Tartool</title>
     <style>
         html, body {
             height: 100%;
@@ -27,15 +27,15 @@
             <div class="col-md-6">
                 <div class="card mt-4">
                     <div class="card-body">
-                        <h5 class="card-title">Welcome!</h5>
+                        <h5 class="card-title">Welcome! | Tartool.xyz</h5>
                         <p class="card-text">This is a simple editor for the embed system focat made | the ones with api broken means its broken because the api doesnt support it..</p>
                         <div class="input-group flex-nowrap mb-3">
                             <span class="input-group-text" id="addon-wrapping">@</span>
-                            <input type="text" id="title-input" class="form-control" placeholder="Title" aria-label="Title" aria-describedby="addon-wrapping">
+                            <textarea id="title-input" class="form-control" placeholder="Title" aria-label="Title" aria-describedby="addon-wrapping"></textarea>
                         </div>
                         <div class="input-group flex-nowrap mb-3">
                             <span class="input-group-text" id="addon-wrapping">@</span>
-                            <input type="text" id="description-input" class="form-control" placeholder="Description" aria-label="Description" aria-describedby="addon-wrapping">
+                            <textarea id="description-input" class="form-control" placeholder="Description" aria-label="Description" aria-describedby="addon-wrapping"></textarea>
                         </div>
                         <div class="input-group flex-nowrap mb-3">
                             <span class="input-group-text" id="addon-wrapping">@</span>
@@ -63,15 +63,14 @@
             var image = document.getElementById('image-input').value;
             var video = document.getElementById('video-input').value;
             var author = document.getElementById('author-input').value;
-            var link = 'https://focat.pythonanywhere.com/api/v1/discord/ezembed?title=' + encodeURIComponent(title) + '&description=' + encodeURIComponent(description) + '&image=' + encodeURIComponent(image) + '&video=' + encodeURIComponent(video) + '&author=' + encodeURIComponent(author);
+            var link = `https://focat.pythonanywhere.com/api/v1/discord/ezembed?title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}&image=${encodeURIComponent(image)}&video=${encodeURIComponent(video)}&author=${encodeURIComponent(author)}`;
             document.getElementById('generated-link').href = link;
             document.getElementById('generated-link').textContent = link;
         }
 
-        document.getElementById('title-input').addEventListener('input', updateLink);
-        document.getElementById('description-input').addEventListener('input', updateLink);
-        document.getElementById('image-input').addEventListener('input', updateLink);
-        document.getElementById('video-input').addEventListener('input', updateLink);
+        document.querySelectorAll('input, textarea').forEach(element => {
+            element.addEventListener('input', updateLink);
+        });
     </script>
 </body>
 </html>
