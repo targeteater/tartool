@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Oops | Tartool</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  </head>
+  <body data-bs-theme="dark">
+    <nav class="navbar navbar-dark bg-dark border-bottom border-body fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">TarTool</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarText">
+              <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                  <a class="nav-link active" aria-current="page" href="#">Home</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#">Ada</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#">Pricing</a>
+                </li>
+              </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!--Landing Page-->
+    <div class="container d-flex justify-content-center align-items-center min-vh-100" style="padding-top: 56px;">
+        <div class="row">
+            <div class="col text-center">
+                <h1 class="display-1">Oops!</h1>
+                <p class="lead"><strong>This area you tried to reach doesn't exist! Sorry. Heres a cat to make up for it.</strong></p>
+                <a href="https://tartool.xyz/" class="btn btn-primary">Home</a>
+                <img src="https://miro.medium.com/v2/resize:fit:1080/0*A7MUqyCLvZDcHkfM.jpg" height="200" width="200">
+            </div>
+        </div>
+    </div>
+
+    <!--Footer-->
+    <footer class="footer mt-auto py-3 bg-dark text-white">
+        <div class="container">
+            <div class="row d-flex justify-content-center align-items-center">
+                <div class="col-md-4 text-center">
+                    <h5>About TarTool</h5>
+                    <p>TarTool is a multi tool that lets you have fun in multiple ways like compiling lua without having lua or making embed with our embeder, we have multiple tools.</p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="https://tartool.xyz/lua" class="text-white">Lua Compiler</a></li>
+                        <li><a href="https://tartool.xyz/embed" class="text-white">Embed Tool</a></li>
+                        <li><a href="#" class="text-muted">Disabled</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col text-center">
+                    <span class="text-muted">TarTool &copy; 2024</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  </body>
+</html>
