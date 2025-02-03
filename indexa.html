@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Test om 1800-talet</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+  <style>
+    /* Global styling */
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: #fff;
+      overflow-x: hidden;
+    }
+    /* Suddig effekt vid tab-out */
+    .blur {
+      filter: blur(10px);
+      transition: filter 0.3s ease;
+    }
+    /* Kort med transparent bakgrund */
+    .card-custom {
+      background-color: rgba(255, 255, 255, 0.1);
+      border: none;
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+      margin-bottom: 30px;
+    }
+    .hidden { display: none; }
+    /* Formulär och input */
+    input.form-control {
+      background-color: rgba(255, 255, 255, 0.8);
+      border: none;
+      border-radius: 5px;
+    }
+    label.form-check-label {
+      color: #fff;
+    }
+    .form-check-input:checked {
+      background-color: #2a5298;
+      border-color: #2a5298;
+    }
+    /* Rubriker */
+    h4, h5 {
+      font-weight: 700;
+    }
+    /* Animerade knappar */
+    .btn {
+      transition: all 0.3s ease;
+    }
+    .btn:hover {
+      transform: scale(1.05);
+    }
+    /* Container centrering */
+    .full-height {
+      min-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    /* Styling för feedback på svarsalternativ */
+    .answer-correct {
+      background-color: #28a745 !important;
+      color: #fff !important;
+      border-radius: 5px;
+      padding: 5px;
+    }
+    .answer-wrong {
+      background-color: #dc3545 !important;
+      color: #fff !important;
+      border-radius: 5px;
+      padding: 5px;
+    }
+  </style>
+  <script>
+    // Vid sidladdning: Om testet redan är genomfört, fråga efter overridekod
+    if (localStorage.getItem('testCompleted') === 'true') {
+      var override = prompt("Du har redan genomfört testet och kan inte spela igen.\nFör administratörer, skriv in koden för att fortsätta testet:");
+      if (override !== "ADMIN123") {
+        window.location.href = 'leaderboard.html';
+      }
+    }
+  </script>
+</head>
+<body>
+  <!-- Huvudcontainer -->
+  <div class="container full-height" id="main-container">
+    <div class="w-100">
+      <!-- Startskärm -->
+      <div class="card-custom" id="start-screen">
+        <div class="alert alert-warning" role="alert">
+          <h4 class="alert-heading">VIKTIGT MEDDELANDE</h4>
+          <p>
+            Du får bara en chans. Om du byter flik (tabbar ut) eller lämnar fullskärmsläge så blir du kickad och kan inte spela igen! Den som vinner får en PRIS!!! Lägg riktig namn annars vinner du inget.. t.ex (Ali) du kan lägga emojis.
+          </p>
+        </div>
+        <div class="mb-3">
+          <label for="userName" class="form-label">Ange ditt namn:</label>
+          <input type="text" class="form-control" id="userName" placeholder="Ditt namn">
+        </div>
+        <button class="btn btn-primary w-100" id="startTestBtn">Starta testet</button>
+      </div>
+
+      <!-- Quizcontainer (genereras dynamiskt) -->
+      <div class="card-custom hidden" id="quiz-container">
+        <!-- Quiz-formuläret kommer att läggas här dynamiskt -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Override Modal (Bootstrap) -->
+  <div class="modal fade" id="overrideModal" tabindex="-1" aria-labelledby="overrideModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-dark text-white">
+        <div class="modal-header">
+          <h5 class="modal-title" id="overrideModalLabel">Testet pausat</h5>
+        </div>
+        <div class="modal-body">
+          Du har lämnat testet! Ange administratörs-koden för att fortsätta.
+          <input type="text" id="overrideInput" class="form-control mt-2" placeholder="Skriv in koden">
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="overrideCancel" class="btn btn-secondary">Avbryt</button>
+          <button type="button" id="overrideSubmit" class="btn btn-primary">Fortsätt</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap Bundle JS (inklusive Modal funktionalitet) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Globala variabler för teststatus
+    let testTerminated = false;
+    let submitted = false;
+    let userName = '';
+
+    // Funktion för att aktivera fullskärm
+    function requestFullScreen() {
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if (elem.webkitRequestFullscreen) { /* Safari */
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) { /* IE11 */
+        elem.msRequestFullscreen();
+      }
+    }
+
+    // Hämta modal-elementet och skapa en Bootstrap-modalinstans
+    const overrideModalEl = document.getElementById('overrideModal');
+    const overrideModal = new bootstrap.Modal(overrideModalEl, { backdrop: 'static', keyboard: false });
+
+    // Funktion för att visa override-modal
+    function showOverrideModal(message) {
+      // Lägg till blur på hela containern
+      document.getElementById('main-container').classList.add('blur');
+      // Ändra modalens titel (om så önskas)
+      document.getElementById('overrideModalLabel').textContent = message;
+      // Töm inputfältet
+      document.getElementById('overrideInput').value = "";
+      // Visa modalen
+      overrideModal.show();
+    }
+
+    // Funktion för att dölja override-modal och ta bort blur
+    function hideOverrideModal() {
+      overrideModal.hide();
+      document.getElementById('main-container').classList.remove('blur');
+    }
+
+    // Vid klick på "Fortsätt" i modalen
+    document.getElementById('overrideSubmit').addEventListener('click', function() {
+      const code = document.getElementById('overrideInput').value.trim();
+      if (code === "ADMIN123") {
+        hideOverrideModal();
+      } else {
+        alert("Fel kod. Testet avslutas.");
+        testTerminated = true;
+        localStorage.setItem('testCompleted', 'true');
+        window.location.href = 'leaderboard.html';
+      }
+    });
+
+    // Vid klick på "Avbryt" i modalen avslutas testet
+    document.getElementById('overrideCancel').addEventListener('click', function() {
+      alert("Testet avslutas.");
+      testTerminated = true;
+      localStorage.setItem('testCompleted', 'true');
+      window.location.href = 'leaderboard.html';
+    });
+
+    // Kontrollera om quizformuläret är synligt
+    function quizFormIsVisible() {
+      const quizContainer = document.getElementById('quiz-container');
+      return quizContainer.classList.contains('d-block');
+    }
+
+    // Vid fullskärmsändring: Om vi lämnar fullskärmsläge och testet är aktivt, visa modal
+    document.addEventListener('fullscreenchange', function() {
+      if (!document.fullscreenElement && !testTerminated && !submitted && quizFormIsVisible()) {
+        showOverrideModal("Du har lämnat fullskärmsläge!");
+      }
+    });
+
+    // Vid blur (användaren tabbar ut): Om testet är aktivt, visa modal
+    window.addEventListener('blur', function() {
+      if (!testTerminated && !submitted && quizFormIsVisible()) {
+        showOverrideModal("Du har lämnat testet!");
+      }
+    });
+
+    // Funktion för att blanda (shuffle) en array (Fisher-Yates)
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    // Fråge- och svarsdata
+    const questionsData = [
+      {
+        question: "Vad hette Karl XIV Johan innan han blev svensk kung?",
+        answers: [
+          { text: "Daniel Westling", correct: false },
+          { text: "Lars Johan Hierta", correct: false },
+          { text: "Jean Baptiste Bernadotte", correct: true }
+        ]
+      },
+      {
+        question: "När var senaste gången Sverige deltog i ett krig?",
+        answers: [
+          { text: "1809 – mot Ryssland", correct: false },
+          { text: "1814 – mot Norge", correct: true },
+          { text: "1914 – mot Tyskland", correct: false }
+        ]
+      },
+      {
+        question: "Hur länge varade den svensk-norska unionen?",
+        answers: [
+          { text: "I nästan hundra år", correct: true },
+          { text: "I nästan två hundra år", correct: false },
+          { text: "Lite längre än Kalmarunionen", correct: false }
+        ]
+      },
+      {
+        question: "Vad ville de liberala?",
+        answers: [
+          { text: "Höja tullarna, stärka monarkin och avskaffa folkskolan", correct: false },
+          { text: "Avskaffa adelns och kyrkans privilegier, gynna handeln, arbeta för demokrati", correct: true },
+          { text: "Att Sverige skulle anfalla Danmark och göra Köpenhamn till svensk huvudstad", correct: false }
+        ]
+      },
+      {
+        question: "Vad fick barnen lära sig i folkskolan?",
+        answers: [
+          { text: "Läsa, skriva, räkna, älska sälar och vara källkritiska", correct: false },
+          { text: "Läsa, skriva, räkna, älska EU – och lite programmering ibland", correct: false },
+          { text: "Läsa, skriva, räkna, älska Sverige, tro på gud, respektera kungahuset", correct: true }
+        ]
+      },
+      {
+        question: "Vad innebar det laga skiftet – jordbruksreformen som sjösattes 1827?",
+        answers: [
+          { text: "Att marken fördelades om så att bönderna fick större och mer sammanhängande åkrar", correct: true },
+          { text: "Att byarna kunde behållas som de var. Men kyrkan fick flytta på sig", correct: false },
+          { text: "Att bönderna gick över från naturahushållning till en mer modern livsstil", correct: false }
+        ]
+      },
+      {
+        question: "Ungefär hur många svenska utvandrade till Nordamerika mellan 1845 och 1930?",
+        answers: [
+          { text: "En halv miljon", correct: false },
+          { text: "Två hundra tusen", correct: false },
+          { text: "En miljon", correct: true }
+        ]
+      },
+      {
+        question: "Vad gjorde att många svenskar valde att lämna sitt hemland?",
+        answers: [
+          { text: "Svält och arbetslöshet", correct: true },
+          { text: "Smittkoppor", correct: false },
+          { text: "De fick inte gå i skola", correct: false }
+        ]
+      },
+      {
+        question: "Vilka tre saker brukar man säga låg bakom att Sverige blev ett industriland?",
+        answers: [
+          { text: "Ånga, trä och järn", correct: true },
+          { text: "Vindkraft, koppar och sockerbetor", correct: false },
+          { text: "Guld, rökelse och myrra", correct: false }
+        ]
+      },
+      {
+        question: "Vad innebär urbanisering?",
+        answers: [
+          { text: "Att folk flyr det stressiga livet i storstäderna och skaffar sig får", correct: false },
+          { text: "Att väldigt många föräldrar plötsligt döper sina barn till Urban eller Urbina", correct: false },
+          { text: "Att många flyttar in till städerna från landet", correct: true }
+        ]
+      },
+      {
+        question: "Den gamla ståndsriksdagen försvann 1866. Vad kom i stället?",
+        answers: [
+          { text: "Enkammarriksdagen", correct: false },
+          { text: "Trekammarbrunnen", correct: false },
+          { text: "Tvåkammarriksdagen", correct: true }
+        ]
+      },
+      {
+        question: "Vilka av dessa är ideologier (synsätt på samhället)?",
+        answers: [
+          { text: "Surrealism och realism", correct: false },
+          { text: "Ateism och skepticism", correct: false },
+          { text: "Socialism och konservatism", correct: true }
+        ]
+      },
+      {
+        question: "När fick de svenska kvinnorna för första gången rösta i ett riksdagsval?",
+        answers: [
+          { text: "1866", correct: false },
+          { text: "1909", correct: false },
+          { text: "1921", correct: true }
+        ]
+      },
+      {
+        question: "Vem var Jonas Stolt?",
+        answers: [
+          { text: "En småländsk skomakare som skrev ner sina minnen", correct: true },
+          { text: "Skomakaren som grundade Socialdemokraterna", correct: false },
+          { text: "Författaren till folkskolans läsebok", correct: false }
+        ]
+      },
+      {
+        question: "Vilket är det viktigaste arvet från 1800-talet?",
+        answers: [
+          { text: "Elbilen", correct: false },
+          { text: "Den politiska demokratin", correct: true },
+          { text: "Popmusiken", correct: false }
+        ]
+      }
+    ];
+
+    // När användaren klickar på "Starta testet"
+    document.getElementById('startTestBtn').addEventListener('click', function() {
+      userName = document.getElementById('userName').value.trim();
+      if (userName === '') {
+        alert('Ange ditt namn för att starta testet.');
+        return;
+      }
+      requestFullScreen();
+      document.getElementById('start-screen').classList.add('hidden');
+      generateQuiz();
+      const quizContainer = document.getElementById('quiz-container');
+      quizContainer.classList.remove('hidden');
+      quizContainer.classList.add('d-block');
+    });
+
+    // Funktion som genererar quiz-formuläret dynamiskt
+    function generateQuiz() {
+      // Kopiera arrayen och blanda frågorna
+      const questions = shuffle([...questionsData]);
+      // Blanda svarsalternativen för varje fråga
+      questions.forEach(q => shuffle(q.answers));
+
+      const quizContainer = document.getElementById('quiz-container');
+      // Skapa ett formulär
+      const form = document.createElement('form');
+      form.id = "quiz-form";
+      // Generera HTML för varje fråga
+      questions.forEach((q, qIndex) => {
+        const questionBlock = document.createElement('div');
+        questionBlock.className = "mb-4 question-block";
+        // Frågetext
+        const questionTitle = document.createElement('h5');
+        questionTitle.textContent = (qIndex + 1) + ". " + q.question;
+        questionBlock.appendChild(questionTitle);
+        // Svarsalternativ
+        q.answers.forEach((ans, aIndex) => {
+          const answerDiv = document.createElement('div');
+          answerDiv.className = "form-check";
+          const input = document.createElement('input');
+          input.className = "form-check-input";
+          input.type = "radio";
+          input.name = "question_" + qIndex;
+          input.id = "question_" + qIndex + "_option_" + aIndex;
+          input.value = ans.text;
+          // Spara korrekt information i ett data-attribut
+          input.dataset.correct = ans.correct ? "true" : "false";
+          const label = document.createElement('label');
+          label.className = "form-check-label";
+          label.htmlFor = input.id;
+          label.textContent = ans.text;
+          answerDiv.appendChild(input);
+          answerDiv.appendChild(label);
+          questionBlock.appendChild(answerDiv);
+        });
+        form.appendChild(questionBlock);
+      });
+      // Lägg till submit-knapp
+      const submitBtn = document.createElement('button');
+      submitBtn.type = "submit";
+      submitBtn.className = "btn btn-success w-100";
+      submitBtn.textContent = "Check";
+      form.appendChild(submitBtn);
+      quizContainer.appendChild(form);
+
+      // Lyssnare för formulärets submit
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitted = true; // Inaktivera blur-/fullskärmsåtgärder
+        // Hämta alla frågeblock
+        const questionBlocks = document.querySelectorAll('.question-block');
+        let score = 0;
+        questionBlocks.forEach(block => {
+          // Hämta alla radio-knappar i detta block
+          const radios = block.querySelectorAll('input[type="radio"]');
+          let answered = false;
+          radios.forEach(radio => {
+            radio.disabled = true; // Inaktivera alternativen efter submit
+            const label = document.querySelector("label[for='" + radio.id + "']");
+            if (radio.checked) {
+              answered = true;
+              if (radio.dataset.correct === "true") {
+                label.classList.add("answer-correct");
+                score++;
+              } else {
+                label.classList.add("answer-wrong");
+                // Markera det korrekta alternativet
+                radios.forEach(r => {
+                  if (r.dataset.correct === "true") {
+                    const correctLabel = document.querySelector("label[for='" + r.id + "']");
+                    correctLabel.classList.add("answer-correct");
+                  }
+                });
+              }
+            }
+          });
+          // Om inget svar valdes, visa det korrekta alternativet
+          if (!answered) {
+            radios.forEach(r => {
+              if (r.dataset.correct === "true") {
+                const correctLabel = document.querySelector("label[for='" + r.id + "']");
+                correctLabel.classList.add("answer-correct");
+              }
+            });
+          }
+        });
+        // Visa ett meddelande med poäng
+        alert("Du fick " + score + " av " + questionBlocks.length + " rätt!");
+        // Markera att testet är avslutat så att replay inte tillåts
+        localStorage.setItem('testCompleted', 'true');
+        // Ge användaren 6 sekunder att se det färgade resultatet innan vi skickar resultatet
+        setTimeout(function() {
+          fetch('https://predictify-8b87f-default-rtdb.europe-west1.firebasedatabase.app/scores.json?auth=LSKINZsdbscv62k6ZexoSM3i8OUYiWqP3KNZ0WwY', {
+            method: 'POST',
+            body: JSON.stringify({
+              name: userName,
+              score: score,
+              timestamp: new Date().toISOString()
+            }),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            window.location.href = 'leaderboard.html';
+          })
+          .catch(error => {
+            console.error('Fel vid sparning av resultat:', error);
+            alert('Ett fel uppstod vid sparning av resultatet.');
+          });
+        }, 6000); // 6000 ms = 6 sekunder
+      });
+    }
+  </script>
+</body>
+</html>

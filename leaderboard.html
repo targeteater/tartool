@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Leaderboard - Test om 1800-talet</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container mt-5">
+    <h2>Leaderboard</h2>
+    <table class="table table-striped" id="leaderboardTable">
+      <thead>
+        <tr>
+          <th>Position</th>
+          <th>Namn</th>
+          <th>Poäng</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Resultaten fylls i här -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // Hämtar data från Firebase Realtime Database
+      fetch('https://predictify-8b87f-default-rtdb.europe-west1.firebasedatabase.app/scores.json?auth=LSKINZsdbscv62k6ZexoSM3i8OUYiWqP3KNZ0WwY')
+        .then(response => response.json())
+        .then(data => {
+          console.log("Hämtad data från Firebase:", data);
+          let scores = [];
+
+          if (data !== null) {
+            for (let key in data) {
+              if (data.hasOwnProperty(key)) {
+                scores.push(data[key]);
+              }
+            }
+          }
+
+          // Om inga resultat hittats
+          if (scores.length === 0) {
+            document.querySelector('#leaderboardTable tbody').innerHTML =
+              '<tr><td colspan="3" class="text-center">Inga resultat än.</td></tr>';
+            return;
+          }
+
+          // Sortera resultaten efter högsta poäng
+          scores.sort((a, b) => b.score - a.score);
+
+          const tbody = document.querySelector('#leaderboardTable tbody');
+          scores.forEach((entry, index) => {
+            const namn = entry.name || "Okänt";
+            const score = (entry.score !== undefined && entry.score !== null) ? entry.score : 0;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${index + 1}</td>
+              <td>${namn}</td>
+              <td>${score} / 15</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        })
+        .catch(error => {
+          console.error('Fel vid hämtning av leaderboard:', error);
+          document.querySelector('#leaderboardTable tbody').innerHTML =
+              '<tr><td colspan="3" class="text-center text-danger">Fel vid hämtning av data.</td></tr>';
+        });
+    });
+  </script>
+</body>
+</html>
